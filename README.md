@@ -1,6 +1,6 @@
 # 图书管理系统（Java Swing + MySQL）
 
-一个用 Java 8 + Swing 界面 + JDBC + MySQL 8.4 写的桌面图书管理程序，支持图书的增、删、改、查。
+一个用 Java 8 + Swing 界面 + JDBC + MySQL 8.4 写的桌面图书管理程序，支持图书的增、删、改、查和搜索。
 
 ## 功能
 
@@ -8,6 +8,7 @@
 - **添加图书**：弹出对话框填写，带输入校验（书名必填、价格/库存必须是数字）
 - **修改图书**：选一行点修改（或直接双击该行），原数据自动填入对话框
 - **删除图书**：二次确认后删除
+- **搜索**：在搜索框输入书名或作者的一部分，点「搜索」或按回车即时过滤；「显示全部」一键清空条件
 - 刷新列表、点击表头可按任意列排序
 
 ## 截图
@@ -28,14 +29,15 @@
 
 ```
 src/
-├── MainFrame.java       主窗口：表格 + 工具栏按钮
+├── MainFrame.java       主窗口：表格 + 工具栏按钮 + 搜索栏
 ├── BookDialog.java      添加 / 修改图书的对话框（含输入校验）
 ├── BookTableModel.java  表格模型：把 List<Book> 变成 JTable 能显示的数据
-├── BookDao.java         数据访问层：增删改查
+├── BookDao.java         数据访问层：增删改查 + 模糊搜索
 ├── Book.java            实体类：一本书（对应 books 表一行）
 ├── DbUtil.java          数据库连接工具类
 ├── DbTest.java          连接测试（开发第 3 步的验证程序）
-└── DaoTest.java         DAO 层测试（开发第 4 步的验证程序）
+├── DaoTest.java         DAO 层测试（开发第 4 步的验证程序）
+└── SearchTest.java      搜索功能测试（验证 BookDao.search 的模糊查询）
 lib/                     JDBC 驱动 jar
 sql/init.sql             建库建表脚本（含示例数据）
 docs/screenshot.png      界面截图
@@ -63,10 +65,11 @@ java -Dfile.encoding=UTF-8 -cp "out;lib/mysql-connector-j-8.4.0.jar" MainFrame
 2. **DAO 层**：Book 实体 + BookDao 增删改查 + 控制台测试全部通过
 3. **界面**：先做只读表格窗口，确认能显示数据库数据
 4. **完整 CRUD 界面**：加工具栏按钮和录入对话框，实现可视化增删改查
+5. **搜索**：搜索框按书名 / 作者模糊查询（`WHERE title LIKE '%关键字%' OR author LIKE '%关键字%'`），回车即搜；关键词里的 `%`、`_`、`\` 会先转义，避免被当成通配符
 
 ## 后续计划
 
-- [ ] 搜索框（按书名 / 作者模糊查询）
+- [x] 搜索框（按书名 / 作者模糊查询）
 - [ ] 分页显示
 - [ ] 借阅记录表（读者、借出时间、归还时间）
 - [ ] 导出 Excel

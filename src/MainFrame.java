@@ -6,6 +6,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -26,11 +27,12 @@ public class MainFrame extends JFrame {
     private final BookTableModel model = new BookTableModel();
     private final JTable table = new JTable(model);
     private final JLabel status = new JLabel("正在加载...");
+    private final JTextField searchField = new JTextField(16); // 按书名/作者搜索的输入框
 
     public MainFrame() {
         setTitle("图书管理系统");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(820, 480);
+        setSize(900, 480); // 多了搜索栏，稍微加宽一点
         setLocationRelativeTo(null); // 窗口居中
         initUi();
         refresh();                   // 打开窗口就去数据库取数据
@@ -46,17 +48,31 @@ public class MainFrame extends JFrame {
         JButton addButton = new JButton("添加图书");
         JButton editButton = new JButton("修改选中");
         JButton deleteButton = new JButton("删除选中");
+        JButton searchButton = new JButton("搜索");
+        JButton showAllButton = new JButton("显示全部");
 
         refreshButton.addActionListener(e -> refresh());
         addButton.addActionListener(e -> onAdd());
         editButton.addActionListener(e -> onEdit());
         deleteButton.addActionListener(e -> onDelete());
+        searchButton.addActionListener(e -> refresh()); // 点"搜索"= 按输入框里的关键字查
+        showAllButton.addActionListener(e -> {
+            searchField.setText(""); // 清空关键字
+            refresh();               // 再查全部
+        });
+        searchField.addActionListener(e -> refresh()); // 输入框里按回车也能搜
+        searchField.setToolTipText("输入书名或作者的一部分，按回车搜索");
 
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         toolbar.add(refreshButton);
         toolbar.add(addButton);
         toolbar.add(editButton);
         toolbar.add(deleteButton);
+        // 搜索栏跟在按钮后面
+        toolbar.add(new JLabel("搜索："));
+        toolbar.add(searchField);
+        toolbar.add(searchButton);
+        toolbar.add(showAllButton);
 
         // ---- 中间：表格 ----
         table.setRowHeight(30);
@@ -94,11 +110,16 @@ public class MainFrame extends JFrame {
         setContentPane(root);
     }
 
-    /** 重新从数据库查一遍，刷新表格 */
+    /** 重新从数据库查一遍，刷新表格（有关键字就模糊搜索，没有就查全部） */
     public void refresh() {
-        List<Book> books = dao.listAll();
+        String keyword = searchField.getText().trim(); // 去掉前后空格
+        List<Book> books = dao.search(keyword);
         model.setBooks(books);
-        status.setText("共 " + books.size() + " 本书");
+        if (keyword.isEmpty()) {
+            status.setText("共 " + books.size() + " 本书");
+        } else {
+            status.setText("搜索「" + keyword + "」：共找到 " + books.size() + " 本书");
+        }
     }
 
     /** 点"添加图书" */
